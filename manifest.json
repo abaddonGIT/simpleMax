@@ -1,0 +1,22 @@
+{
+	"manifest_version": 2,
+	"name": "simpleMax",
+	"version": "0.0.1",
+	"description": "Расширение позволят просмотрвать сеансы в кинотеатрах сети киномакс",
+	"author": "Abaddon",
+
+	"icons": {
+		"48":"img/icon_48.png",
+		"128":"img/icon_128.png"
+	},
+
+	"browser_action": {
+		"default_icon": "img/icon_48.png",
+		"default_title": "KinoMax in Chrome",
+		"default_popup": "pages/popup.html"	
+	},
+
+	"permissions": [
+		"http://kinomax.ru/*"
+	]
+}
