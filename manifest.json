@@ -15,8 +15,10 @@
 		"default_title": "KinoMax in Chrome",
 		"default_popup": "pages/popup.html"	
 	},
+	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
 
 	"permissions": [
-		"http://kinomax.ru/*"
+		"http://kinomax.ru/*",
+		"tabs"
 	]
 }

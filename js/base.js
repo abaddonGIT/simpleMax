@@ -3,7 +3,7 @@
  * @author Abaddon <abaddongit@gmail.com>
  * @version 1.0.0
  * ***************************************************/
-var d = document, D = $(d), w = window, W = $(w);
+var d = document, D = $(d), w = window, W = $(w), T = chrome.tabs;
 
 var Kino = function () {
 
@@ -11,7 +11,8 @@ var Kino = function () {
       'dateField': $('#date'),
       'form': $('#timetableForm'),
       'timetableBlock': $('#timetable'),
-      'timetableUrl': 'http://kinomax.ru/index2.php'
+      'timetableUrl': 'http://kinomax.ru/index2.php',
+      'host': 'http://kinomax.ru'
   }
 
   var c = this.config;
@@ -37,21 +38,10 @@ var Kino = function () {
               }
           },
           onSelect: function (date) {
-              c.dateField.val(dateReplaced(date)); 
+              c.dateField.val(K.dateReplaced(date)); 
               K.actions.getTimetable(); 
           },
       });
-      //переставлят строку с датой
-      var dateReplaced = function (date) {
-          var array = date.split('.'), ln = array.length, newAr = [], i = 0;
-          
-          while (ln--) {
-              newAr[i] = array[ln];
-              i++;
-          }    
-
-          return newAr.join('-');
-      };
 
       //Записывает текущую дату после подгрузки
       var date = new Date();
@@ -64,6 +54,8 @@ var Kino = function () {
 
   this.addEvents = function () {
       D.on('change', '#city', K.actions.getTimetable);
+      //перехватываем клики по ссылкам
+      D.on('click', '#timetable a', K.actions.clickTableLink);
   };
 
   //Действия
@@ -74,39 +66,47 @@ var Kino = function () {
 
           K.ajax(function (data) {
               K.parceTimeTable(data);
-
-              c.timetableBlock.html(data);    
+              //c.timetableBlock.html(data);    
           },{'url': data});
+      },
+      clickTableLink: function () {
+          var el = $(this), href = el.attr('href');
+
+          T.create({"url":c.host + href});
+          
+          return false;  
+      },
+      Tip: function (data) {
+          console.log(data);
       }
   };
-
-	/*
-	* Получает текущий день
-	*/
-	this.getDay = function () {
-		var data = new Date();
-		return data.getDate();
-	};
 
   /*
   * Вытаскивает то что нужно из ответа
   */
 
   this.parceTimeTable = function (res) {
-      console.log($(res).find('table'));
-  };
+      var conteiner = $(res).find('.user-sessions-container');
+      //Удаляем лишние события
+      conteiner.find('span').removeAttr('onmouseout').removeAttr('onmouseover');
 
-  /*
-  * Перегоняет объект в url-ловое представление
-  */
-  this.parceObjectToUrl = function (start, data) {
-      var url = '?', ln = data.length;
+      var timeLinks = conteiner.find('a'), ln = timeLinks.length;
 
-      for (var i = 0; i < ln; i++) {
-              url += data[i]['name'] + '=' + data[i]['value'] + '&';    
+      while(ln--) {
+        var loc = $(timeLinks[ln]), fun = 'K.actions.';
+        
+        if (loc.attr('onmouseover') !== undefined) {
+            fun += loc.attr('onmouseover');
+            loc.attr('onmouseover', fun);
+        }
+
       }
 
-      return start + url.substr(0, url.length - 1);
+      if (conteiner[0] === undefined) {
+          c.timetableBlock.html('<b class="noresults">Сеансов в данном городе на это число не обнаруженно!</b>');
+      } else {
+          c.timetableBlock.html(conteiner); 
+      }
   };
 
   /*
@@ -141,8 +141,45 @@ var Kino = function () {
 	var K = this;
 };
 
+/*
+* Получает текущий день
+*/
+Kino.prototype.getDay = function () {
+    var data = new Date();
+    return data.getDate();
+};
+
+/*
+*переставлят строку с датой
+*/ 
+Kino.prototype.dateReplaced = function (date) {
+  var array = date.split('.'), ln = array.length, newAr = [], i = 0;
+          
+  while (ln--) {
+    newAr[i] = array[ln];
+    i++;
+  }    
+  return newAr.join('-');
+};
+
+/*
+* Перегоняет объект в url-ловое представление
+*/
+Kino.prototype.parceObjectToUrl = function (start, data) {
+    var url = '?', ln = data.length;
+
+    for (var i = 0; i < ln; i++) {
+        url += data[i]['name'] + '=' + data[i]['value'] + '&';    
+    }
+    return start + url.substr(0, url.length - 1);
+};
+
+
+
 w.onload = function () {
  	var kino = new Kino();
+
+  console.log(kino.__proto__);
 
  	kino.init();
 }

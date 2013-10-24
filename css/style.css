@@ -8,10 +8,27 @@ html {
 	background-color: #E4E4E4;
 }
 
+::-webkit-scrollbar-thumb {
+	background-color: #ccc;
+	border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
+}
+
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
+    border-radius: 10px;
+}
+
 #wrapper {
 	margin: 10px;
 	margin: 0;
 	padding: 0;
+	max-height: 550px;
+	overflow: hidden;
 }
 
 #timetableForm {
@@ -19,7 +36,46 @@ html {
 }
 
 #timetable {
+	max-height: 500px;
+	padding-right: 20px;
+	overflow-y: auto;
+}
+
+#timetable table {
+	min-width: 400px;
 	
+}
+
+#timetable .user-sessions-container > a {
+	font-weight: 700;
+	text-align: center;
+	padding: 5px 0;
+	font-size: 14px;
+	background-color: #9D1765;
+	border-radius: 5px;
+	text-decoration: none;
+	display: block;
+	margin: 5px 0;
+	color: #fff;
+}
+
+#timetable th {
+	background-color: #6E0C47;
+	padding: 5px 10px 5px 10px;
+	color: #fff;
+	font-size: 12px;
+}
+
+#content #timetable td {
+	background-color: #fff;
+	padding: 5px;
+	vertical-align: middle;
+}
+
+#timetable td a {
+	text-decoration: none;
+	color: #663399;
+	font-weight: 700;
 }
 
 #content {
@@ -60,4 +116,14 @@ legend {
 .ui-datepicker-prev,
 .ui-datepicker-next {
 	display: none;
+}
+
+.noresults {
+	min-width: 150px;
+	text-align: center;
+	display: block;
+}
+
+.user-sessions-container {
+	width: 400px;
 }
