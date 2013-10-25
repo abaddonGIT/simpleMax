@@ -36,9 +36,17 @@ html {
 }
 
 #timetable {
+	visibility: hidden;
+	height: 0;
 	max-height: 500px;
 	padding-right: 20px;
 	overflow-y: auto;
+	transition: all 1s ease;
+}
+
+#timetable.visible {
+	height: 500px;
+	visibility: visible; 	
 }
 
 #timetable table {
@@ -126,4 +134,109 @@ legend {
 
 .user-sessions-container {
 	width: 400px;
+}
+
+.pop {
+	padding: 5px;
+	background-color: #663399;
+	color: #fff;
+	z-index: 4;
+}
+
+.pop b {
+	display: block;
+	text-align: center;
+	padding: 2px 0;
+	background-color: #9D1765;
+}
+
+#fade {
+	position: fixed;
+	z-index: 5;
+	background-color: #fff;
+	
+}
+
+.effect {
+	transition: all 1.2s ease;
+    height: 0;
+    width: 0;
+    opacity: 0;
+    visibility: hidden;
+}
+
+.effect.visible {
+	visibility: visible;
+	opacity: 1;
+	width: 100%;
+	height: 100%;
+}
+
+.close {
+	width: 40px;
+	height: 40px;
+	background: url(../img/close.png);
+	float: right;
+	margin: 10px;
+	cursor: pointer;
+	visibility: hidden;
+	transition: all 1.2s ease 1.2s;
+	-webkit-transform: scale(0) rotate(720deg);
+    -moz-transform: scale(0) rotate(720deg);
+    -ms-transform: scale(0) rotate(720deg);
+    transform: scale(0) rotate(720deg); 
+}
+
+.effect.visible .close {
+	visibility: visible;
+	-webkit-transform: scale(1) rotate(0);
+    -moz-transform: scale(1) rotate(0);
+    -ms-transform: scale(1) rotate(0);
+    transform: scale(1) rotate(0); 
+}
+
+.effect .close.hidden {
+	transition: all 1.2s ease;
+	-webkit-transform: scale(0) rotate(720deg);
+    -moz-transform: scale(0) rotate(720deg);
+    -ms-transform: scale(0) rotate(720deg);
+    transform: scale(0) rotate(720deg); 
+    opacity: 0;
+    visibility: hidden;
+}
+
+.loading {
+	position: absolute;;
+	left: 30%;
+	top: 48%;
+	font-weight: 700;
+	font-size: 14px;
+}
+
+#fade_content {
+	height: 500px;
+	overflow-y: auto; 
+}
+
+.booking .title {
+	padding: 10px;
+	font-weight: 700;
+	text-transform: uppercase;
+	text-align: center;
+	color: #fff;
+	background-color: #9D1765;
+}
+
+#main .title {
+	text-align: left;
+	font-weight: 500;
+	text-transform: none;
+}
+
+.inside div {
+	margin: 5px 0;
+}
+
+.h5 {
+	font-weight: 700;
 }

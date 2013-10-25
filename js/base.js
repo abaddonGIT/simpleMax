@@ -10,9 +10,12 @@ var Kino = function () {
   this.config = {
       'dateField': $('#date'),
       'form': $('#timetableForm'),
+      'host': 'http://kinomax.ru',
       'timetableBlock': $('#timetable'),
       'timetableUrl': 'http://kinomax.ru/index2.php',
-      'host': 'http://kinomax.ru'
+      'bronLink': '/schedule/hallplan.php?type=book&',
+      'host': 'http://kinomax.ru',
+      'places': []
   }
 
   var c = this.config;
@@ -55,7 +58,19 @@ var Kino = function () {
   this.addEvents = function () {
       D.on('change', '#city', K.actions.getTimetable);
       //перехватываем клики по ссылкам
-      D.on('click', '#timetable a', K.actions.clickTableLink);
+      D.on('click', '#timetable a:not(.time)', K.actions.clickTableLink);
+      //Всплывающее окно при наведении на время сеанса
+      D.on('mouseover','.time', K.actions.over);
+      //Удаление инфы о сеансе при сведении
+      D.on('mouseleave', '.time', K.actions.out);
+      //Откритие плана зала по клику на ссылку со временем сеанса
+      D.on('click', '.time', K.actions.openFade);
+      //Окончание анимации окна
+      D.on('transitionend', '#fade, .close', K.actions.animEnd);
+      //Закрытие окна
+      D.on('click', '.close', K.actions.closeFade);
+      //Выбор места
+      D.on('click', '#fade_content .hall-place:not(.reserved-2):not(.reserved-3)', K.actions.selectPlace);
   };
 
   //Действия
@@ -63,21 +78,72 @@ var Kino = function () {
       getTimetable: function () {
           //формируем строку для запроса
           var data = c.form.serializeArray();
+          c.timetableBlock.removeClass('visible');
 
           K.ajax(function (data) {
               K.parceTimeTable(data);
               //c.timetableBlock.html(data);    
-          },{'url': data});
+          },{'url': data, 'cont': c.timetableBlock});
       },
       clickTableLink: function () {
           var el = $(this), href = el.attr('href');
 
-          T.create({"url":c.host + href});
+          if (!el.hasClass('time')) {
+            T.create({"url":c.host + href});
+          }
           
           return false;  
       },
-      Tip: function (data) {
-          console.log(data);
+      over: function () {
+          var el = $(this), ar = el.data('content').split(','), e = event || window.event, mX = e.pageX, mY = e.pageY, popup = '';
+
+          popup = '<div class="pop" style="position: absolute; top: ' + (mY - 30) + 'px; left: ' + (mX + 30) + 'px;"><b>' + ar[1] + '</b>' + ar[0] + '</div>';
+
+          c.timetableBlock.append(popup);
+      },
+      out: function () {
+          c.timetableBlock.find('.pop').remove();
+      },
+      openFade: function () {
+          var el = $(this), link;
+          $('#fade').addClass('visible');
+
+          link = c.host + c.bronLink + 'sessionID=' + K.getIdentify(el.attr('href'));
+          
+          
+          K.ajax(function (data) {
+              K.parceBron(data);
+          },{'url': link, 'cont': '#fade_content'});
+
+          return false;
+      },
+      closeFade: function () {
+          var el = $(this);
+          el.addClass('hidden');
+          $('#fade').removeClass('visible');
+          $('#fade_content').html('');
+          return false;
+      },
+      animEnd: function () {
+          $(this).find('.close').removeClass('hidden');
+      },
+      selectPlace: function () {
+          var el = $(this);
+          
+          if (el.hasClass('your-reserved')) {
+              el.removeClass('your-reserved');
+              c.places = K.updateArray(c.places, el.attr('id'));
+              console.log(c.places);
+          } else {
+              if (Object.keys(c.places).length < 2) {
+                  el.addClass('your-reserved');
+                  c.places[el.attr('id')] = el;
+              } else {
+                  alert('Нельзя забронировать больше двух билетов за раз !!!');
+              }
+          }
+
+          console.log(c.places);
       }
   };
 
@@ -87,19 +153,28 @@ var Kino = function () {
 
   this.parceTimeTable = function (res) {
       var conteiner = $(res).find('.user-sessions-container');
+
+      //console.log(conteiner);
       //Удаляем лишние события
       conteiner.find('span').removeAttr('onmouseout').removeAttr('onmouseover');
 
       var timeLinks = conteiner.find('a'), ln = timeLinks.length;
 
       while(ln--) {
-        var loc = $(timeLinks[ln]), fun = 'K.actions.';
-        
-        if (loc.attr('onmouseover') !== undefined) {
-            fun += loc.attr('onmouseover');
-            loc.attr('onmouseover', fun);
-        }
+        var loc = $(timeLinks[ln]), over = loc.attr('onmouseover');
+        if (over !== undefined) {
+          var ov = over.substr(4, (over.length - 2))
+            .replace("')","")
+            .replace("', TITLE","")
+            .replace("'","")
+            .replace(" '","")
+            .replace("</a>","");
 
+          loc.removeAttr('onmouseover').data('content', ov).addClass('time');
+        }
+        
+        
+        loc.removeAttr('onmouseout');
       }
 
       if (conteiner[0] === undefined) {
@@ -107,7 +182,19 @@ var Kino = function () {
       } else {
           c.timetableBlock.html(conteiner); 
       }
+
+      c.timetableBlock.addClass('visible');
   };
+
+  this.parceBron = function (data) {
+      var cont = '<div>' + data + '</div>';
+
+      var br = $(cont).find('.booking');
+
+      var css = $(cont).find('style');
+
+      $('#fade_content').html(br[0]).append(css[0]).append(br[1]);
+  }
 
   /*
   * Делает запрос
@@ -130,16 +217,37 @@ var Kino = function () {
           data: options.data,
           cache: false,
           beforeSend: function() {
-                    
+              $(options.cont).append('<div class="loading">Идет подключение к кинотеатру...</div>');            
           },
           success: function(data) {
-              callback(data);          
+              callback(data);   
+              $(options.cont).find('.loading').remove();       
           }    
       });
   };
 
 	var K = this;
 };
+
+Kino.prototype.updateArray = function (array, remove) {
+    var newA = [];
+
+    for (i in array) {
+        if (i !== remove) {
+           newA[i] = array[i]; 
+        }
+    }
+
+    return newA;
+}
+
+/*
+* Получает идентификатор для запроса схемы зала
+*/
+Kino.prototype.getIdentify = function (link) {
+    var ar = link.split('/'), ses = ar[3].split('.');
+    return ses[0];
+}
 
 /*
 * Получает текущий день
