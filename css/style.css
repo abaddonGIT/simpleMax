@@ -133,7 +133,7 @@ legend {
 }
 
 .user-sessions-container {
-	width: 400px;
+	width: 500px;
 }
 
 .pop {
@@ -215,6 +215,7 @@ legend {
 
 #fade_content {
 	height: 500px;
+	padding: 10px;
 	overflow-y: auto; 
 }
 
@@ -239,4 +240,15 @@ legend {
 
 .h5 {
 	font-weight: 700;
+}
+
+#main .place-desc {
+		width: 200px;
+}
+
+#logo {
+	display: block;
+	width: 230px;
+	height: 108px;
+	background: url(../img/kmlogo.png) no-repeat;
 }

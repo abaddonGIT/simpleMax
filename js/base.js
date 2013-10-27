@@ -15,7 +15,15 @@ var Kino = function () {
       'timetableUrl': 'http://kinomax.ru/index2.php',
       'bronLink': '/schedule/hallplan.php?type=book&',
       'host': 'http://kinomax.ru',
-      'places': []
+      'orderLink': '/schedule/booking.php?',
+      'places': [],
+      'orderPlace': null,
+      'placeDesc': null,
+      'sessionID': null,
+      'orderLimit': 2,
+      'orderLevel': null,
+      'anonimus': 'true',
+      'orderType': 'book'
   }
 
   var c = this.config;
@@ -54,11 +62,10 @@ var Kino = function () {
   /*
   * Устанавливает обработчики событий
   */
-
   this.addEvents = function () {
       D.on('change', '#city', K.actions.getTimetable);
       //перехватываем клики по ссылкам
-      D.on('click', '#timetable a:not(.time)', K.actions.clickTableLink);
+      D.on('click', '#timetable a:not(.time), #logo', K.actions.clickTableLink);
       //Всплывающее окно при наведении на время сеанса
       D.on('mouseover','.time', K.actions.over);
       //Удаление инфы о сеансе при сведении
@@ -71,6 +78,8 @@ var Kino = function () {
       D.on('click', '.close', K.actions.closeFade);
       //Выбор места
       D.on('click', '#fade_content .hall-place:not(.reserved-2):not(.reserved-3)', K.actions.selectPlace);
+      //Делает бронь
+      D.on('click', '#fade_content .get-order', K.actions.getOrder);
   };
 
   //Действия
@@ -87,18 +96,14 @@ var Kino = function () {
       },
       clickTableLink: function () {
           var el = $(this), href = el.attr('href');
-
           if (!el.hasClass('time')) {
             T.create({"url":c.host + href});
           }
-          
           return false;  
       },
       over: function () {
           var el = $(this), ar = el.data('content').split(','), e = event || window.event, mX = e.pageX, mY = e.pageY, popup = '';
-
           popup = '<div class="pop" style="position: absolute; top: ' + (mY - 30) + 'px; left: ' + (mX + 30) + 'px;"><b>' + ar[1] + '</b>' + ar[0] + '</div>';
-
           c.timetableBlock.append(popup);
       },
       out: function () {
@@ -107,10 +112,9 @@ var Kino = function () {
       openFade: function () {
           var el = $(this), link;
           $('#fade').addClass('visible');
-
-          link = c.host + c.bronLink + 'sessionID=' + K.getIdentify(el.attr('href'));
-          
-          
+          //запоминаем идентификатор
+          c.sessionID = K.getIdentify(el.attr('href'));
+          link = c.host + c.bronLink + 'sessionID=' + c.sessionID;
           K.ajax(function (data) {
               K.parceBron(data);
           },{'url': link, 'cont': '#fade_content'});
@@ -122,6 +126,8 @@ var Kino = function () {
           el.addClass('hidden');
           $('#fade').removeClass('visible');
           $('#fade_content').html('');
+          //очищаем выбранные места
+          c.places = [];
           return false;
       },
       animEnd: function () {
@@ -133,17 +139,48 @@ var Kino = function () {
           if (el.hasClass('your-reserved')) {
               el.removeClass('your-reserved');
               c.places = K.updateArray(c.places, el.attr('id'));
-              console.log(c.places);
+              K.updateOrder(c.places);
           } else {
               if (Object.keys(c.places).length < 2) {
                   el.addClass('your-reserved');
-                  c.places[el.attr('id')] = el;
+                  var id = el.attr('id'), type = el.attr('rel');
+
+                  c.places[id] = {
+                    'el': el,
+                    'place': id.split('-'),
+                    'type': type
+                  };
+
+                  K.updateOrder(c.places);
               } else {
                   alert('Нельзя забронировать больше двух билетов за раз !!!');
               }
           }
+      },
+      getOrder: function () {
+          var el = $(this),
+              name = encodeURIComponent(c.credentials.find('input[name=user-name]').val()),
+              phone = encodeURIComponent(c.credentials.find('input[name=user-phone]').val()),
+              placesList = '';
 
-          console.log(c.places);
+              if (!name || name === undefined || name === null) {
+                  alert('Необходимо указать ФИО на которые будет поставлена бронь!');
+              } else {//отправляем заказ
+                
+                  for (i in c.places) {
+                      var loc = c.places[i]['place'];
+                      placesList += loc[1] + ':' + loc[2] + ';';
+                  }
+
+                  link = c.host + c.orderLink + 'sessionID=' + c.sessionID + '&act=' + c.orderType + '&placesList=' + placesList + '&customerName=' + name + '&levelID=' + c.orderLevel + '&anonymous=' + c.anonimus + '&phone=' + phone;
+                  //Отсылаем запрос
+                  K.ajax(function (data) {
+                      var res = $('<div>' + data + '</div>').find('.film-col');
+                      res.find('ul').remove();
+                      $('#fade_content').html(res[0]);
+                  },{'url': link, 'cont': '#fade_content'});
+              }
+          return false;
       }
   };
 
@@ -194,6 +231,13 @@ var Kino = function () {
       var css = $(cont).find('style');
 
       $('#fade_content').html(br[0]).append(css[0]).append(br[1]);
+
+      c.orderPlace = $('#fade_content').find('#order-place #your-order');
+      c.placeDesc = $('#fade_content').find('.place-desc');
+      c.credentials = $('#fade_content').find('#credentials');
+      c.orderLevel = $('#fade_content').find('#mp-level-id').val();
+
+      c.credentials.find('.get-order').removeAttr('onclick');
   }
 
   /*
@@ -228,7 +272,38 @@ var Kino = function () {
 
 	var K = this;
 };
+/*
+* Обновление заказа
+*/
+Kino.prototype.updateOrder = function (array) {
+    var order = this.config.orderPlace, desc = this.config.placeDesc, credentials = this.config.credentials, orderPrice = 0, hallList = '<b>Вами выбраны следующие места:</b>';
 
+    for (i in array) {
+        var prItem = desc.find('.' + array[i]['type']).next().find('.price-sum');
+        orderPrice += parseInt(prItem.attr('id'));
+        hallList += '<div class="orderPlace">' + array[i]['place'][1] + ' ряд, ' + array[i]['place'][2] + ' место.' + prItem.text() + '</div>';
+    }
+
+    orderPrice = orderPrice/100;
+    hallList += '<b>Сумма: ' + orderPrice + ' руб.</b>';
+
+    if (orderPrice === 0) {
+        order.css('display', 'none');
+        credentials.css('display', 'none');
+        order.html('');
+    } else {
+        order.css('display', 'block');
+        credentials.css('display','block');
+        order.html(hallList);
+    }
+
+    //console.log(orderPrice);
+
+};
+
+/*
+* Удаление выбранных мест
+*/
 Kino.prototype.updateArray = function (array, remove) {
     var newA = [];
 
@@ -286,8 +361,5 @@ Kino.prototype.parceObjectToUrl = function (start, data) {
 
 w.onload = function () {
  	var kino = new Kino();
-
-  console.log(kino.__proto__);
-
  	kino.init();
 }
