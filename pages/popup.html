@@ -29,7 +29,6 @@
                                     <legend>Выберите город и желаемый день просмотра</legend>
                                     <input type="hidden" name="r" value="schedule/lk" />
                                     <input type="hidden" name="date" value="" id="date" />
-                                    <label for="city">Город</label>
                                     <select id="city" name="cityID">
                                         <option value="">Город</option>
                                         <option value="1">Москва</option>
@@ -54,6 +53,19 @@
                                         <option value="20">Ярославль</option>
                                     </select>
                                     <div id="datepicker"></div>
+                                </fieldset>
+                            </form>
+                            <form action="#" method="post" id="authBlock">
+                                <fieldset>
+                                    <legend>Авторизация</legend>
+                                    <div id="messages"></div>
+                                    <input type="hidden" name="login_submit.x" value="17" />
+                                    <input type="hidden" name="login_submit.y" value="7" />
+                                    <label for="username">Логин:</label>
+                                    <input type="text" id="username" name="LoginForm[username]" />
+                                    <label for="password">Пароль</label>
+                                    <input type="password" id="password" name="LoginForm[password]" />
+                                    <a href="#" id="getUser">Войти</a>
                                 </fieldset>
                             </form>
                         </td>

@@ -16,20 +16,51 @@ var Kino = function () {
       'bronLink': '/schedule/hallplan.php?type=book&',
       'host': 'http://kinomax.ru',
       'orderLink': '/schedule/booking.php?',
+      'checkUserUrl': '/index2.php?r=lk/editprofile',
+      'authUrl': '/index2.php?r=lk/login',
+      'userBlock': $('#authBlock'),
       'places': [],
+      'checkString': 'Данный функционал доступен только зарегистрированным пользователям.',
       'orderPlace': null,
       'placeDesc': null,
       'sessionID': null,
       'orderLimit': 2,
       'orderLevel': null,
       'anonimus': 'true',
-      'orderType': 'book'
+      'orderType': 'book',
+      'userSess': null
   }
 
   var c = this.config;
 
 	this.init = function () {
-		//Внешний вид
+		//Пытаемся проверить авторизован ли пользователь на сайте
+    chrome.cookies.getAll({'url': 'http://kinomax.ru'}, function (cookie) {
+        var ln = cookie.length;
+
+        while (ln--) {
+            var loc = cookie[ln]['name'];
+
+            if (loc !== 'PHPSESSID' && loc !== '__utma' && loc !== '__utmb' && loc !== '__utmc' && loc !== '__utmz' && loc !== 'cityID' && loc !== '_ym_visorc') {
+                c.userSess = cookie[ln]['name'];
+            }
+        }
+
+        if (!c.userSess) {//Если мы не смогли нати куку то делаем запрос к личномы кабинету чтобы убедится
+            K.ajax(function (data) {
+               if(data.indexOf(c.checkString) === -1) {
+                  c.orderLimit = 20;
+                  c.anonimus = 'false'; 
+               }
+            },{'url': c.host + c.checkUserUrl});  
+        } else {
+            c.orderLimit = 20;
+            c.anonimus = 'false';    
+            c.userBlock.html('<b>Вы авторизованы на сайте киномакс!</b> У вас есть возможность бронировать до 20 - ти билетов.');
+        }
+    });
+    
+    //Внешний вид
     this.ui();
     this.addEvents();
 	};
@@ -80,20 +111,23 @@ var Kino = function () {
       D.on('click', '#fade_content .hall-place:not(.reserved-2):not(.reserved-3)', K.actions.selectPlace);
       //Делает бронь
       D.on('click', '#fade_content .get-order', K.actions.getOrder);
+      //Авторизация пользователя
+      D.on('click', '#getUser', K.actions.auth);
   };
 
   //Действия
   this.actions = {
+      //Получаеи расписание сеансов
       getTimetable: function () {
           //формируем строку для запроса
           var data = c.form.serializeArray();
           c.timetableBlock.removeClass('visible');
 
           K.ajax(function (data) {
-              K.parceTimeTable(data);
-              //c.timetableBlock.html(data);    
+              K.parceTimeTable(data);   
           },{'url': data, 'cont': c.timetableBlock});
       },
+      //Обработка кликов по ссылкам из таблицы расписания
       clickTableLink: function () {
           var el = $(this), href = el.attr('href');
           if (!el.hasClass('time')) {
@@ -101,14 +135,17 @@ var Kino = function () {
           }
           return false;  
       },
+      //Показывает информацию о сеансе при наведении
       over: function () {
           var el = $(this), ar = el.data('content').split(','), e = event || window.event, mX = e.pageX, mY = e.pageY, popup = '';
           popup = '<div class="pop" style="position: absolute; top: ' + (mY - 30) + 'px; left: ' + (mX + 30) + 'px;"><b>' + ar[1] + '</b>' + ar[0] + '</div>';
           c.timetableBlock.append(popup);
       },
+      //Скрывает ин-ю о сеансе при сведении
       out: function () {
           c.timetableBlock.find('.pop').remove();
       },
+      //Открывает окно со схемой зала
       openFade: function () {
           var el = $(this), link;
           $('#fade').addClass('visible');
@@ -117,10 +154,10 @@ var Kino = function () {
           link = c.host + c.bronLink + 'sessionID=' + c.sessionID;
           K.ajax(function (data) {
               K.parceBron(data);
-          },{'url': link, 'cont': '#fade_content'});
-
+          },{'url': link, 'cont': '#fade_content','delay': 1800});
           return false;
       },
+      //Закрывает окно со схемой
       closeFade: function () {
           var el = $(this);
           el.addClass('hidden');
@@ -130,9 +167,11 @@ var Kino = function () {
           c.places = [];
           return false;
       },
+      //Конец анимации закрытия окна
       animEnd: function () {
           $(this).find('.close').removeClass('hidden');
       },
+      //Выбор мест на схеме зала и построение заказа
       selectPlace: function () {
           var el = $(this);
           
@@ -141,7 +180,7 @@ var Kino = function () {
               c.places = K.updateArray(c.places, el.attr('id'));
               K.updateOrder(c.places);
           } else {
-              if (Object.keys(c.places).length < 2) {
+              if (Object.keys(c.places).length < c.orderLimit) {
                   el.addClass('your-reserved');
                   var id = el.attr('id'), type = el.attr('rel');
 
@@ -153,23 +192,28 @@ var Kino = function () {
 
                   K.updateOrder(c.places);
               } else {
-                  alert('Нельзя забронировать больше двух билетов за раз !!!');
+                  alert('Нельзя забронировать больше ' + c.orderLimit + ' билетов за раз !!!');
               }
           }
       },
+      //Создание брони
       getOrder: function () {
           var el = $(this),
               name = encodeURIComponent(c.credentials.find('input[name=user-name]').val()),
               phone = encodeURIComponent(c.credentials.find('input[name=user-phone]').val()),
               placesList = '';
 
-              if (!name || name === undefined || name === null) {
+              if (!name || name === undefined || name === null || name === "undefined" && c.anonimus === 'true') {
                   alert('Необходимо указать ФИО на которые будет поставлена бронь!');
               } else {//отправляем заказ
                 
                   for (i in c.places) {
                       var loc = c.places[i]['place'];
                       placesList += loc[1] + ':' + loc[2] + ';';
+                  }
+
+                  if (c.anonimus === 'false') {
+                      name = '';
                   }
 
                   link = c.host + c.orderLink + 'sessionID=' + c.sessionID + '&act=' + c.orderType + '&placesList=' + placesList + '&customerName=' + name + '&levelID=' + c.orderLevel + '&anonymous=' + c.anonimus + '&phone=' + phone;
@@ -181,13 +225,43 @@ var Kino = function () {
                   },{'url': link, 'cont': '#fade_content'});
               }
           return false;
+      },
+      //Авторизация пользователя
+      auth: function () {
+          var el = $(this), 
+              parent = c.userBlock,  
+              data = parent.serializeArray(),
+              link = c.host + c.authUrl;
+
+          K.ajax(function (data) {
+              chrome.cookies.getAll({'url': 'http://kinomax.ru'}, function (cookie) {
+                var ln = cookie.length;
+                while (ln--) {
+                    var loc = cookie[ln]['name'];
+
+                    if (loc !== 'PHPSESSID' && loc !== '__utma' && loc !== '__utmb' && loc !== '__utmc' && loc !== '__utmz' && loc !== 'cityID' && loc !== '_ym_visorc') {
+                        c.userSess = cookie[ln]['name'];
+                    }
+                }
+
+                if (c.userSess) {
+                    $('#authBlock').html('Вы успешно авторизованы на сайте киномакс. Приятного просмотра:-)');
+                    c.orderLimit = 20;
+                    c.anonimus = 'false';
+                } else {
+                    $('#authBlock #messages').html('Вы ввели неправильные данные, или произошла трагическая случайность. Попробуйте еще раз.');
+                    c.orderLimit = 2;
+                    c.anonimus = 'true';
+                }
+              });
+          },{'url': link, 'cont': '#authBlock','data': data});
+          return false;
       }
   };
 
   /*
-  * Вытаскивает то что нужно из ответа
+  * Чистить ответ для вывода расписания сеансов
   */
-
   this.parceTimeTable = function (res) {
       var conteiner = $(res).find('.user-sessions-container');
 
@@ -222,7 +296,9 @@ var Kino = function () {
 
       c.timetableBlock.addClass('visible');
   };
-
+  /*
+  * Вывод схемы зала
+  */
   this.parceBron = function (data) {
       var cont = '<div>' + data + '</div>';
 
@@ -230,48 +306,60 @@ var Kino = function () {
 
       var css = $(cont).find('style');
 
-      $('#fade_content').html(br[0]).append(css[0]).append(br[1]);
+      if (br[0] !== undefined) {
+          $('#fade_content').html(br[0]).append(css[0]).append(br[1]);
 
-      c.orderPlace = $('#fade_content').find('#order-place #your-order');
-      c.placeDesc = $('#fade_content').find('.place-desc');
-      c.credentials = $('#fade_content').find('#credentials');
-      c.orderLevel = $('#fade_content').find('#mp-level-id').val();
+          c.orderPlace = $('#fade_content').find('#order-place #your-order');
+          c.placeDesc = $('#fade_content').find('.place-desc');
+          c.credentials = $('#fade_content').find('#credentials');
+          c.orderLevel = $('#fade_content').find('#mp-level-id').val();
 
-      c.credentials.find('.get-order').removeAttr('onclick');
-  }
-
-  /*
-  * Делает запрос
-  */
-
-  this.ajax = function (callback, options) {
-      if (options === undefined) {
-          return false;
+          c.credentials.find('.get-order').remove();
+          c.credentials.append('<a class="get-order" href="#">Забронировать</a>');
       } else {
-          if (typeof options.url === "object") {
-              options.url = this.parceObjectToUrl(c.timetableUrl, options.url);  
-          }
+          $('#fade_content').html('<h2>Ошибка выполнения запроса</h2>Извините, произошла ошибка при подключении к кинотеатру, возможно кинотеатр недоступен в данный момент, попробуйте еще раз чуть позже. Спасибо.');
       }
-
-      $.ajax({
-          type: 'POST',
-          dataType: options.type || "html",
-          processData: true,
-          url: options.url || c.timetableUrl,
-          data: options.data,
-          cache: false,
-          beforeSend: function() {
-              $(options.cont).append('<div class="loading">Идет подключение к кинотеатру...</div>');            
-          },
-          success: function(data) {
-              callback(data);   
-              $(options.cont).find('.loading').remove();       
-          }    
-      });
-  };
+  }
 
 	var K = this;
 };
+
+/*
+* Делает запрос
+*/
+Kino.prototype.ajax = function (callback, options) {
+    if (options === undefined) {
+        return false;
+    } else {
+        if (typeof options.url === "object") {
+            options.url = this.parceObjectToUrl(this.config.timetableUrl, options.url);  
+        }
+    }
+
+    $.ajax({
+        type: 'POST',
+        dataType: options.type || "html",
+        processData: true,
+        url: options.url || this.config.timetableUrl,
+        data: options.data,
+        cache: false,
+        beforeSend: function() {
+            $(options.cont).append('<div class="loading">Идет подключение к кинотеатру...</div>');            
+        },
+        success: function(data) {
+            if (options.delay !==  undefined) {
+                setTimeout(function () {
+                    callback(data);   
+                    $(options.cont).find('.loading').remove();  
+                }, options.delay);  
+            } else {
+                callback(data);   
+                $(options.cont).find('.loading').remove();  
+            }     
+        }    
+    });
+};
+
 /*
 * Обновление заказа
 */

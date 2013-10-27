@@ -27,25 +27,35 @@ html {
 	margin: 10px;
 	margin: 0;
 	padding: 0;
-	max-height: 550px;
+	max-height: 650px;
 	overflow: hidden;
 }
 
 #timetableForm {
-	
+	margin-bottom: 0;
+}
+
+#content input[type=text],
+#content input[type=password] {
+	border: 1px solid #ddd;
+	height: 25px;
+	padding: 3px;
+	width: 232px;
+	margin-bottom: 5px;
+	border-radius: 5px;
 }
 
 #timetable {
 	visibility: hidden;
 	height: 0;
-	max-height: 500px;
+	max-height: 550px;
 	padding-right: 20px;
 	overflow-y: auto;
 	transition: all 1s ease;
 }
 
 #timetable.visible {
-	height: 500px;
+	height: 550px;
 	visibility: visible; 	
 }
 
@@ -98,7 +108,7 @@ html {
 
 label {
 	display: block;
-	margin: 5px 10px;
+	margin: 3px 10px;
 }
 
 select {
@@ -251,4 +261,11 @@ legend {
 	width: 230px;
 	height: 108px;
 	background: url(../img/kmlogo.png) no-repeat;
+}
+
+#getUser {
+	font-weight: 700;
+	text-decoration: none;
+	color: #9D1765;
+	float: right;
 }
