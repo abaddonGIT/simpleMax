@@ -5,7 +5,7 @@ html {
 	padding: 0;
 	font-family: 'Segoe UI', Tahoma, sans-serif;
 	font-size: 12px;
-	background-color: #E4E4E4;
+	background: #fff url(../img/bg.png) right bottom no-repeat;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -24,7 +24,6 @@ html {
 }
 
 #wrapper {
-	margin: 10px;
 	margin: 0;
 	padding: 0;
 	max-height: 650px;
@@ -46,6 +45,7 @@ html {
 }
 
 #timetable {
+	background-color: #ddd;
 	visibility: hidden;
 	height: 0;
 	max-height: 550px;
@@ -268,4 +268,8 @@ legend {
 	text-decoration: none;
 	color: #9D1765;
 	float: right;
+}
+
+#authBlock {
+	color: #9D1765;
 }

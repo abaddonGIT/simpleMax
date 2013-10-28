@@ -16,7 +16,7 @@ var Kino = function () {
       'bronLink': '/schedule/hallplan.php?type=book&',
       'host': 'http://kinomax.ru',
       'orderLink': '/schedule/booking.php?',
-      'checkUserUrl': '/index2.php?r=lk/editprofile',
+      'checkUserUrl': '/index2.php?r=lk/index',
       'authUrl': '/index2.php?r=lk/login',
       'userBlock': $('#authBlock'),
       'places': [],
@@ -35,34 +35,19 @@ var Kino = function () {
 
 	this.init = function () {
 		//Пытаемся проверить авторизован ли пользователь на сайте
-    chrome.cookies.getAll({'url': 'http://kinomax.ru'}, function (cookie) {
-        var ln = cookie.length;
 
-        while (ln--) {
-            var loc = cookie[ln]['name'];
-
-            if (loc !== 'PHPSESSID' && loc !== '__utma' && loc !== '__utmb' && loc !== '__utmc' && loc !== '__utmz' && loc !== 'cityID' && loc !== '_ym_visorc') {
-                c.userSess = cookie[ln]['name'];
-            }
-        }
-
-        if (!c.userSess) {//Если мы не смогли нати куку то делаем запрос к личномы кабинету чтобы убедится
-            K.ajax(function (data) {
-               if(data.indexOf(c.checkString) === -1) {
-                  c.orderLimit = 20;
-                  c.anonimus = 'false'; 
-               }
-            },{'url': c.host + c.checkUserUrl});  
-        } else {
+    K.ajax(function (data) {
+        var logForm = $(data).find('#yw0'); 
+        
+        if(data.indexOf(c.checkString) === -1 && logForm[0] === undefined) {
             c.orderLimit = 20;
             c.anonimus = 'false';    
             c.userBlock.html('<b>Вы авторизованы на сайте киномакс!</b> У вас есть возможность бронировать до 20 - ти билетов.');
         }
-    });
-    
-    //Внешний вид
-    this.ui();
-    this.addEvents();
+        //Внешний вид
+        K.ui();
+        K.addEvents();
+    },{'url': c.host + c.checkUserUrl, 'cont': '#content', 'delay': 1000});
 	};
 
   /*
@@ -82,7 +67,7 @@ var Kino = function () {
           onSelect: function (date) {
               c.dateField.val(K.dateReplaced(date)); 
               K.actions.getTimetable(); 
-          },
+          }
       });
 
       //Записывает текущую дату после подгрузки
@@ -234,26 +219,16 @@ var Kino = function () {
               link = c.host + c.authUrl;
 
           K.ajax(function (data) {
-              chrome.cookies.getAll({'url': 'http://kinomax.ru'}, function (cookie) {
-                var ln = cookie.length;
-                while (ln--) {
-                    var loc = cookie[ln]['name'];
-
-                    if (loc !== 'PHPSESSID' && loc !== '__utma' && loc !== '__utmb' && loc !== '__utmc' && loc !== '__utmz' && loc !== 'cityID' && loc !== '_ym_visorc') {
-                        c.userSess = cookie[ln]['name'];
-                    }
-                }
-
-                if (c.userSess) {
-                    $('#authBlock').html('Вы успешно авторизованы на сайте киномакс. Приятного просмотра:-)');
-                    c.orderLimit = 20;
-                    c.anonimus = 'false';
-                } else {
-                    $('#authBlock #messages').html('Вы ввели неправильные данные, или произошла трагическая случайность. Попробуйте еще раз.');
-                    c.orderLimit = 2;
-                    c.anonimus = 'true';
-                }
-              });
+              var logForm = $(data).find('#yw0'); 
+              if(data.indexOf(c.checkString) === -1 && logForm[0] === undefined) {
+                  $('#authBlock').html('Вы успешно авторизованы на сайте киномакс. Приятного просмотра:-)');
+                  c.orderLimit = 20;
+                  c.anonimus = 'false'; 
+              } else {
+                  $('#authBlock #messages').html('Вы ввели неправильные данные, или произошла трагическая случайность. Попробуйте еще раз.');
+                  c.orderLimit = 2;
+                  c.anonimus = 'true';
+              }
           },{'url': link, 'cont': '#authBlock','data': data});
           return false;
       }
