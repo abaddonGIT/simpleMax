@@ -35,19 +35,33 @@ var Kino = function () {
 
 	this.init = function () {
 		//Пытаемся проверить авторизован ли пользователь на сайте
-
-    K.ajax(function (data) {
-        var logForm = $(data).find('#yw0'); 
-        
-        if(data.indexOf(c.checkString) === -1 && logForm[0] === undefined) {
+    chrome.cookies.get({'url':c.host, 'name':'extUser'}, function (cookie) {
+        if (cookie) {
             c.orderLimit = 20;
-            c.anonimus = 'false';    
+            c.anonimus = 'false';
+            //Внешний вид
+            K.ui();
+            K.addEvents();
             c.userBlock.html('<b>Вы авторизованы на сайте киномакс!</b> У вас есть возможность бронировать до 20 - ти билетов.');
+        } else {
+            //Если наша кукка пуста то делаем запрос
+            K.ajax(function (data) {
+                var logForm = $(data).find('#yw0'); 
+                
+                if(data.indexOf(c.checkString) === -1 && logForm[0] === undefined) {
+                    c.orderLimit = 20;
+                    c.anonimus = 'false';    
+                    //устанавливаем кукку
+                    chrome.cookies.set({'url':c.host, 'name':'extUser', 'value': 'true'});
+                    c.userBlock.html('<b>Вы авторизованы на сайте киномакс!</b> У вас есть возможность бронировать до 20 - ти билетов.');
+                }
+                //Внешний вид
+                K.ui();
+                K.addEvents();
+            },{'url': c.host + c.checkUserUrl, 'cont': '#content'});
         }
-        //Внешний вид
-        K.ui();
-        K.addEvents();
-    },{'url': c.host + c.checkUserUrl, 'cont': '#content', 'delay': 1000});
+        
+    });
 	};
 
   /*
@@ -104,6 +118,7 @@ var Kino = function () {
   this.actions = {
       //Получаеи расписание сеансов
       getTimetable: function () {
+          console.log(this);
           //формируем строку для запроса
           var data = c.form.serializeArray();
           c.timetableBlock.removeClass('visible');
@@ -224,10 +239,12 @@ var Kino = function () {
                   $('#authBlock').html('Вы успешно авторизованы на сайте киномакс. Приятного просмотра:-)');
                   c.orderLimit = 20;
                   c.anonimus = 'false'; 
+                  chrome.cookies.set({'url':c.host, 'name':'extUser', 'value': 'true'});
               } else {
                   $('#authBlock #messages').html('Вы ввели неправильные данные, или произошла трагическая случайность. Попробуйте еще раз.');
                   c.orderLimit = 2;
                   c.anonimus = 'true';
+                  chrome.cookies.remove({'url':c.host, 'name':'extUser'});
               }
           },{'url': link, 'cont': '#authBlock','data': data});
           return false;
