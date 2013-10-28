@@ -43,6 +43,8 @@ var Kino = function () {
             K.ui();
             K.addEvents();
             c.userBlock.html('<b>Вы авторизованы на сайте киномакс!</b> У вас есть возможность бронировать до 20 - ти билетов.');
+            //Установка города из хранилища
+            K.actions.setCity();
         } else {
             //Если наша кукка пуста то делаем запрос
             K.ajax(function (data) {
@@ -58,7 +60,9 @@ var Kino = function () {
                 //Внешний вид
                 K.ui();
                 K.addEvents();
-            },{'url': c.host + c.checkUserUrl, 'cont': '#content'});
+                //Установка города из хранилища
+                K.actions.setCity();
+            },{'url': c.host + c.checkUserUrl});
         }
         
     });
@@ -118,7 +122,13 @@ var Kino = function () {
   this.actions = {
       //Получаеи расписание сеансов
       getTimetable: function () {
-          console.log(this);
+          var e = event || window.event;
+          //При выборе города сохраняем его id-шник в storange
+          if (e.type === 'change') {
+              //console.log(chrome);
+              var val = this.value;
+              chrome.storage.local.set({'city': val});
+          }
           //формируем строку для запроса
           var data = c.form.serializeArray();
           c.timetableBlock.removeClass('visible');
@@ -248,6 +258,29 @@ var Kino = function () {
               }
           },{'url': link, 'cont': '#authBlock','data': data});
           return false;
+      },
+      //Подставляет город который потльзователь выбрал последним
+      setCity: function () {
+          chrome.storage.local.get('city', function (items) {
+              var options = $('#city option'), ln = options.length;
+              while (ln--) {
+                  var loc = $(options[ln]).val();
+                  if (items.city === loc) {
+                      $(options[ln]).attr('selected','selected');
+                      break;
+                  }
+              }
+              //Если город был заполнен то сразу выводим сеансы
+              if (items.city && items.city !== undefined) {
+                  //формируем строку для запроса
+                  var data = c.form.serializeArray();
+                  c.timetableBlock.removeClass('visible');
+
+                  K.ajax(function (data) {
+                      K.parceTimeTable(data);   
+                  },{'url': data, 'cont': c.timetableBlock});
+              }
+          });  
       }
   };
 
