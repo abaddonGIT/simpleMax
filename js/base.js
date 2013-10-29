@@ -295,13 +295,23 @@ var Kino = function () {
               if (items.kino && items.kino !== undefined) {
 
                   var obj = JSON.parse(items.kino);
-                  console.log(obj[film]);
+                  //console.log(obj[film]);
                   
                   if (obj[film] !== undefined) {
-                      console.log(obj[film]);
+                      //Если такие данные у нас есть, то проверяем не истек ли срок годности
+                        var save = obj[film]['time'] + (24*60*60), now = Math.round(new Date().getTime()/1000.0);
+                         console.log(obj[film]);
+                        
+                        if (now > save) {
+                            //если время хранения истекло то сносим её
+                            delete obj[film];
+                            chrome.storage.local.set({'kino':JSON.stringify(obj)});  
+                        } else {
+                            
+                        }
                   } else {//Если такого фильма нет в хранилище то делаем запрос
                       K.ajax(function (data){
-                          obj[film] = data.rating;
+                          obj[film] = {'rating':data.rating, 'time': Math.round(new Date().getTime()/1000.0)};
                           chrome.storage.local.set({'kino':JSON.stringify(obj)});  
                       },{'url':link,'reqType':'get','type':'json'});
                   }
@@ -310,12 +320,10 @@ var Kino = function () {
                       if (data.type !== undefined) {
                           var stOb = {};
 
-                          stOb[film] = data.rating;
+                          stOb[film] = {'rating':data.rating, 'time': Math.round(new Date().getTime()/1000.0)};
 
                           chrome.storage.local.set({'kino':JSON.stringify(stOb)});  
-                          console.log(stOb);
                       }
-                      console.log(data);
                   },{'url':link,'reqType':'get','type':'json'});
               }
           });

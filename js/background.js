@@ -10,3 +10,13 @@
  		chrome.cookies.remove({'url':'http://kinomax.ru','name':'extUser'});
  	}
  });
+ //отлавливаем операции по записи в storage
+ chrome.storage.onChanged.addListener(function (changes, areaName) {
+  //chrome.storage.local.remove('kino');
+    chrome.storage.local.getBytesInUse('kino', function (bytesInUse) {
+        //Если максимальный размер превышен то чистим хранилище
+        if (bytesInUse > 600) {
+            chrome.storage.local.remove('kino');
+        } 
+    });
+ });
