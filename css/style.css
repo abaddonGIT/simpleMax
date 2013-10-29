@@ -273,3 +273,11 @@ legend {
 #authBlock {
 	color: #9D1765;
 }
+
+.kinopoisk {
+	width: 25px;
+	height: 25px;
+	display: inline-block;
+	float: right;
+	background: url(../img/kinopoisk.png) no-repeat;
+}

@@ -11,6 +11,7 @@ var Kino = function () {
       'dateField': $('#date'),
       'form': $('#timetableForm'),
       'host': 'http://kinomax.ru',
+      'kinopoisk': 'http://www.kinopoisk.ru/search/chrometoolbar.php?v=1&query=',
       'timetableBlock': $('#timetable'),
       'timetableUrl': 'http://kinomax.ru/index2.php',
       'bronLink': '/schedule/hallplan.php?type=book&',
@@ -99,7 +100,7 @@ var Kino = function () {
   this.addEvents = function () {
       D.on('change', '#city', K.actions.getTimetable);
       //перехватываем клики по ссылкам
-      D.on('click', '#timetable a:not(.time), #logo', K.actions.clickTableLink);
+      D.on('click', '#timetable a:not(.time, .kinopoisk), #logo', K.actions.clickTableLink);
       //Всплывающее окно при наведении на время сеанса
       D.on('mouseover','.time', K.actions.over);
       //Удаление инфы о сеансе при сведении
@@ -116,6 +117,8 @@ var Kino = function () {
       D.on('click', '#fade_content .get-order', K.actions.getOrder);
       //Авторизация пользователя
       D.on('click', '#getUser', K.actions.auth);
+      //Запрос рейтинга фильма по его названию с кинопоиска
+      D.on('click', '.kinopoisk', K.actions.kinopoisk);
   };
 
   //Действия
@@ -281,6 +284,42 @@ var Kino = function () {
                   },{'url': data, 'cont': c.timetableBlock});
               }
           });  
+      },
+      //Запрос рейтинга фильма
+      kinopoisk: function () {
+          var el = $(this), film = el.data('film'),
+              link = c.kinopoisk + encodeURIComponent(film); 
+
+          //Пытаемся получить оценку фильма из хранилища
+          chrome.storage.local.get('kino', function (items) {
+              if (items.kino && items.kino !== undefined) {
+
+                  var obj = JSON.parse(items.kino);
+                  console.log(obj[film]);
+                  
+                  if (obj[film] !== undefined) {
+                      console.log(obj[film]);
+                  } else {//Если такого фильма нет в хранилище то делаем запрос
+                      K.ajax(function (data){
+                          obj[film] = data.rating;
+                          chrome.storage.local.set({'kino':JSON.stringify(obj)});  
+                      },{'url':link,'reqType':'get','type':'json'});
+                  }
+              } else {
+                  K.ajax(function (data){//Тут пишем полученные данные в хранилище
+                      if (data.type !== undefined) {
+                          var stOb = {};
+
+                          stOb[film] = data.rating;
+
+                          chrome.storage.local.set({'kino':JSON.stringify(stOb)});  
+                          console.log(stOb);
+                      }
+                      console.log(data);
+                  },{'url':link,'reqType':'get','type':'json'});
+              }
+          });
+          return false;    
       }
   };
 
@@ -308,10 +347,18 @@ var Kino = function () {
 
           loc.removeAttr('onmouseover').data('content', ov).addClass('time');
         }
-        
-        
         loc.removeAttr('onmouseout');
       }
+
+      //Тут вставляем иконку кинопоиска
+      var trS = $(conteiner).find('tr'), trLen = trS.length;
+
+      for (var i = 0; i < trLen; i++) {
+          var loc = $(trS[i]).find('td').first(), locA = loc.find('a');
+          if (locA[0] !== undefined) {
+              locA.after('<a href="#" title="Узнать рейтинг фильма на кинопоиске" class="kinopoisk" data-film="' + locA.text() + '"></a>');
+          } 
+      } 
 
       if (conteiner[0] === undefined) {
           c.timetableBlock.html('<b class="noresults">Сеансов в данном городе на это число не обнаруженно!</b>');
@@ -359,10 +406,14 @@ Kino.prototype.ajax = function (callback, options) {
         if (typeof options.url === "object") {
             options.url = this.parceObjectToUrl(this.config.timetableUrl, options.url);  
         }
+
+        if (options.reqType === undefined) {
+            options.reqType = 'post';
+        }
     }
 
     $.ajax({
-        type: 'POST',
+        type: options.reqType,
         dataType: options.type || "html",
         processData: true,
         url: options.url || this.config.timetableUrl,

@@ -24,6 +24,7 @@
 
 	"permissions": [
 		"http://kinomax.ru/*",
+		"http://www.kinopoisk.ru/*",
 		"tabs",
 		"webNavigation",
 		"cookies",
