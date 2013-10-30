@@ -104,7 +104,7 @@ var Kino = function () {
       //Всплывающее окно при наведении на время сеанса
       D.on('mouseover','.time', K.actions.over);
       //Удаление инфы о сеансе при сведении
-      D.on('mouseleave', '.time', K.actions.out);
+      D.on('mouseleave', '.time, .kinopoisk', K.actions.out);
       //Откритие плана зала по клику на ссылку со временем сеанса
       D.on('click', '.time', K.actions.openFade);
       //Окончание анимации окна
@@ -288,7 +288,8 @@ var Kino = function () {
       //Запрос рейтинга фильма
       kinopoisk: function () {
           var el = $(this), film = el.data('film'),
-              link = c.kinopoisk + encodeURIComponent(film); 
+              link = c.kinopoisk + encodeURIComponent(film),
+              e = event || window.event; 
 
           //Пытаемся получить оценку фильма из хранилища
           chrome.storage.local.get('kino', function (items) {
@@ -300,19 +301,19 @@ var Kino = function () {
                   if (obj[film] !== undefined) {
                       //Если такие данные у нас есть, то проверяем не истек ли срок годности
                         var save = obj[film]['time'] + (24*60*60), now = Math.round(new Date().getTime()/1000.0);
-                         console.log(obj[film]);
                         
+                        K.showWindow({'text':obj[film]['rating'],'x':e.pageX,'y':e.pageY});//Показывает окошко
+
                         if (now > save) {
                             //если время хранения истекло то сносим её
                             delete obj[film];
                             chrome.storage.local.set({'kino':JSON.stringify(obj)});  
-                        } else {
-                            
-                        }
+                        } 
                   } else {//Если такого фильма нет в хранилище то делаем запрос
                       K.ajax(function (data){
                           obj[film] = {'rating':data.rating, 'time': Math.round(new Date().getTime()/1000.0)};
                           chrome.storage.local.set({'kino':JSON.stringify(obj)});  
+                          K.showWindow({'text':obj[film]['rating'],'x':e.pageX,'y':e.pageY});//Показывает окошко
                       },{'url':link,'reqType':'get','type':'json'});
                   }
               } else {
@@ -323,6 +324,7 @@ var Kino = function () {
                           stOb[film] = {'rating':data.rating, 'time': Math.round(new Date().getTime()/1000.0)};
 
                           chrome.storage.local.set({'kino':JSON.stringify(stOb)});  
+                          K.showWindow({'text':stOb[film]['rating'],'x':e.pageX,'y':e.pageY});//Показывает окошко
                       }
                   },{'url':link,'reqType':'get','type':'json'});
               }
@@ -362,8 +364,11 @@ var Kino = function () {
       var trS = $(conteiner).find('tr'), trLen = trS.length;
 
       for (var i = 0; i < trLen; i++) {
-          var loc = $(trS[i]).find('td').first(), locA = loc.find('a');
-          if (locA[0] !== undefined) {
+          var loc = $(trS[i]).find('td').first(), locA = loc.children();
+
+          var fl = $(locA).is('span');
+
+          if (locA[0] !== undefined && !fl) {
               locA.after('<a href="#" title="Узнать рейтинг фильма на кинопоиске" class="kinopoisk" data-film="' + locA.text() + '"></a>');
           } 
       } 
@@ -402,6 +407,14 @@ var Kino = function () {
   }
 
 	var K = this;
+};
+
+/*
+* Показывает всплывающее окно
+*/
+Kino.prototype.showWindow= function (data) {
+    var popup = '<div class="pop" style="position: absolute; top: ' + (data.y - 30) + 'px; left: ' + (data.x + 30) + 'px;">' + data.text + '</div>';
+    this.config.timetableBlock.append(popup);
 };
 
 /*
