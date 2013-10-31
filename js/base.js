@@ -77,11 +77,15 @@ var Kino = function () {
           showWeek: true,
           firstDay: 1,
           beforeShowDay: function(date) {
-              if (date.getDate() < K.getDay()) {
+            /*
+              console.log(date.getDate() + '||' + K.getDay());
+              if (date < K.getDay()) {
                 return [false,, 'Сеасы уже прошли(-:'];
               } else {
                 return [true,, ''];
               }
+            */
+            return [true,, ''];
           },
           onSelect: function (date) {
               c.dateField.val(K.dateReplaced(date)); 

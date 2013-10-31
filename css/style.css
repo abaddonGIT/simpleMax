@@ -133,7 +133,7 @@ legend {
 
 .ui-datepicker-prev,
 .ui-datepicker-next {
-	display: none;
+	display: block;
 }
 
 .noresults {
