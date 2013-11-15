@@ -60,15 +60,23 @@ var Kino = function () {
           showWeek: true,
           firstDay: 1,
           beforeShowDay: function(date) {
-            /*
-              console.log(date.getDate() + '||' + K.getDay());
-              if (date < K.getDay()) {
-                return [false,, 'Сеасы уже прошли(-:'];
-              } else {
+            var month = date.getMonth() + 1;
+
+            if (date.getFullYear() > K.getDate('year')) {            
                 return [true,, ''];
-              }
-            */
-            return [true,, ''];
+            } else {
+                if (month < K.getDate('month')) {
+                    return [false,, 'Сеасы уже прошли(-:'];  
+                } else if (month > K.getDate('month')) {
+                    return [true,, '']; 
+                } else {
+                    if (date.getDate() < K.getDate()) {
+                        return [false,, 'Сеасы уже прошли(-:'];
+                    } else {
+                        return [true,, ''];
+                    }
+                }
+            }
           },
           onSelect: function (date) {
               c.dateField.val(K.dateReplaced(date)); 
@@ -468,9 +476,6 @@ Kino.prototype.updateOrder = function (array) {
         credentials.css('display','block');
         order.html(hallList);
     }
-
-    //console.log(orderPrice);
-
 };
 
 /*
@@ -497,11 +502,24 @@ Kino.prototype.getIdentify = function (link) {
 }
 
 /*
-* Получает текущий день
+* Возвращает нужную часть даты
 */
-Kino.prototype.getDay = function () {
-    var data = new Date();
-    return data.getDate();
+Kino.prototype.getDate = function (what) {
+    var date = new Date();
+
+    switch (what) {
+        case 'day':
+            return date.getDate();
+            break;
+        case 'month':
+            return date.getMonth() + 1;
+            break;
+        case 'year':
+            return date.getFullYear();
+            break;
+            default:
+              return date.getDate();
+    }
 };
 
 /*
