@@ -50,22 +50,6 @@ var Kino = function () {
             //Установка города из хранилища
             K.actions.setCity();
         },{'url': c.host + c.checkUserUrl});
-    /*chrome.cookies.get({'url':c.host, 'name':'extUser'}, function (cookie) {
-        if (cookie) {
-            c.orderLimit = 20;
-            c.anonimus = 'false';
-            //Внешний вид
-            K.ui();
-            K.addEvents();
-            c.userBlock.html('<b>Вы авторизованы на сайте киномакс!</b> У вас есть возможность бронировать до 20 - ти билетов.');
-            //Установка города из хранилища
-            K.actions.setCity();
-        } else {
-            //Если наша кукка пуста то делаем запрос
-            
-        }
-        
-    });*/
 	};
 
   /*
