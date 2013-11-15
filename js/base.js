@@ -36,7 +36,21 @@ var Kino = function () {
 
 	this.init = function () {
 		//Пытаемся проверить авторизован ли пользователь на сайте
-    chrome.cookies.get({'url':c.host, 'name':'extUser'}, function (cookie) {
+        K.ajax(function (data) {
+            var logForm = $(data).find('#yw0'); 
+                
+            if(data.indexOf(c.checkString) === -1 && logForm[0] === undefined) {
+                c.orderLimit = 20;
+                c.anonimus = 'false';    
+                c.userBlock.html('<b>Вы авторизованы на сайте киномакс!</b> У вас есть возможность бронировать до 20 - ти билетов.');
+            }
+            //Внешний вид
+            K.ui();
+            K.addEvents();
+            //Установка города из хранилища
+            K.actions.setCity();
+        },{'url': c.host + c.checkUserUrl});
+    /*chrome.cookies.get({'url':c.host, 'name':'extUser'}, function (cookie) {
         if (cookie) {
             c.orderLimit = 20;
             c.anonimus = 'false';
@@ -48,25 +62,10 @@ var Kino = function () {
             K.actions.setCity();
         } else {
             //Если наша кукка пуста то делаем запрос
-            K.ajax(function (data) {
-                var logForm = $(data).find('#yw0'); 
-                
-                if(data.indexOf(c.checkString) === -1 && logForm[0] === undefined) {
-                    c.orderLimit = 20;
-                    c.anonimus = 'false';    
-                    //устанавливаем кукку
-                    chrome.cookies.set({'url':c.host, 'name':'extUser', 'value': 'true'});
-                    c.userBlock.html('<b>Вы авторизованы на сайте киномакс!</b> У вас есть возможность бронировать до 20 - ти билетов.');
-                }
-                //Внешний вид
-                K.ui();
-                K.addEvents();
-                //Установка города из хранилища
-                K.actions.setCity();
-            },{'url': c.host + c.checkUserUrl});
+            
         }
         
-    });
+    });*/
 	};
 
   /*
