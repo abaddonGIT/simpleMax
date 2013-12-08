@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
 	"name": "Wool Kinomax",
-	"version": "0.0.8",
+	"version": "0.0.9",
 	"description": "Расширение позволят просмотрвать сеансы в кинотеатрах сети киномакс",
 	"author": "Abaddon",
 
@@ -21,12 +21,13 @@
 	},
 
 	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
-
+    "options_page": "pages/option.html",
 	"permissions": [
 		"http://kinomax.ru/*",
 		"http://www.kinopoisk.ru/*",
 		"tabs",
 		"webNavigation",
+        "notifications",
 		"cookies",
 		"storage"
 	]
