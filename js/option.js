@@ -57,6 +57,7 @@ window.onload = function () {
         //Пишем в хранилище
         localStorage['options'] = JSON.stringify(data);
         message.innerHTML = "Данные успешно обновленны!";
+        chrome.runtime.reload();
         event.preventDefault();
     });
 }

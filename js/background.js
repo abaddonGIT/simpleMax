@@ -28,7 +28,7 @@
          seanceUrl = 'http://kinomax.ru/index2.php?r=schedule/lk',
          config = {},
          timer = null,
-         frequency = 3600,
+         frequency = 1800,
      createElement = function (html) {
          var div = document.createElement('div');
          div.innerHTML = '<div>' + html + '</div>';
