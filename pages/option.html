@@ -6,6 +6,7 @@
         <style type="text/css">
             form {
                 float: left;
+                width: 622px;
             }
             
             legend {
@@ -41,7 +42,7 @@
                 float: right;
             }
             
-            #right select {
+            #right select, input[type=text] {
                 width: 240px;
                 padding: 8px 5px;
             }
@@ -53,6 +54,12 @@
             input[type=submit]:focus {
                 outline: none;
             }
+            
+            label {
+                display: block;
+                margin: 5px 0;
+            }
+            
         </style>
     </head>
     <body>
@@ -84,13 +91,16 @@
                                         <option value="16">Томск</option>
                                         <option value="12">Челябинск</option>
                                         <option value="20">Ярославль</option>
-                                    </select>
-                    <div id="message">
-                    
-                </div>
+                     </select>
+                     <label>Название фильма на который будет проверяться возможность брони
+                         <input type="text" name="film" id="film" value=""/>
+                     </label>
+                     <div id="message"></div>
                 </div>
                 <br style="clear: both"/>
                 <input type="submit" name="save" value="Сохранить" />
+                <b style="color: red; font-size:  12px;">Если название фильма состоит из несколько слов, то следует разделить их пробером. 
+                    Если название фильма не заданно, но при этом указана дата, то будет проверяться возможность бронирования в принципе.</b>
             </fieldset>
         </form>
         <script src="../js/libs/jquery-2.0.3.js" type="text/javascript"></script>

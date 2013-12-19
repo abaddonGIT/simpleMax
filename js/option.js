@@ -2,6 +2,7 @@
 window.onload = function () {
     var input = document.querySelector('#date'),
         city = document.querySelector('#city'),
+        film = document.querySelector('#film'),
         message = document.querySelector('#message'),
         storage;
 
@@ -48,11 +49,16 @@ window.onload = function () {
             }
         }
     }
+    //Название фильмы
+    if (storage['film']) {
+        film.value = storage['film'];
+    }
 
     document.querySelector('input[type=submit]').addEventListener('click', function () {
         var data = {
             'date': input.value,
-            'city': city.value
+            'city': city.value,
+            'film': film.value
         };
         //Пишем в хранилище
         localStorage['options'] = JSON.stringify(data);
