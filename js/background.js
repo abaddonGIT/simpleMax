@@ -48,59 +48,59 @@
              return el;
          },
          checkSeance = function () {
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', seanceUrl + '&date=' + date + '&city=' + city, true);
-            xhr.onload = function (e) {
-                if (this.status == 200) {
-                    var response = createElement(this.response),
+             var xhr = new XMLHttpRequest();
+             xhr.open('POST', seanceUrl + '&date=' + date + '&city=' + city, true);
+             xhr.onload = function (e) {
+                 if (this.status == 200) {
+                     var response = createElement(this.response),
                         blocks = response.querySelectorAll('.user-sessions-container'),
                         ln = blocks.length,
                         kino = '';
 
-                    if (ln) {
-                        while (ln--) {
-                            kino += ', ' + blocks[ln].querySelector('a').innerHTML;
-                        }
-                        kino = kino.substr(1, kino.length);
-                        var config = {
-                            type: "basic",
-                            title: 'Бронирование билетов!!!',
-                            message: 'На ' + date + ' число стало доступно бронирование билетов в кинотеатрах: ' + kino,
-                            iconUrl: "../img/icon_128.png"
-                        };
-                        //проверяем есть ли в настройках название фильма
-                        if (film) {
-                            filmsSegments = film.split(' '); //Разбиваем название фильма
-                            var ln = filmsSegments.length;
-                            config.message = 'Стало возможным пронирование билетов на фильм "' + film + '" в кинотеатрах:' + kino;
-                            if (ln === 1) {//Если название состоит только из одного слова то ищем по полному совпадению
-                                if (this.response.indexOf(filmsSegments[0]) !== -1) {
-                                    //показываем предупреждение
-                                    showNotifification(config);    
-                                }
-                            }
-                            //Если название фильма состоит более чем из двух слов, то считаем что фильм опознан если есть хотя бы два совпадения
-                            if (ln >= 2) {
-                                var consilience = 0;
-                                while (ln--) {
-                                    if (this.response.indexOf(filmsSegments[ln]) !== -1) {
-                                        consilience++;
-                                    }
-                                }
-
-                                if (consilience === 2) {
-                                    //показываем предупреждение
-                                    showNotifification(config);
-                                }
-                            }
-                        } else {//если фильм не был задан то просто проверяем возможность брони
-                            showNotifification(config);
-                        }
-                    }
-                }
-            }
-            xhr.send();
-        };
+                     if (ln) {
+                         while (ln--) {
+                             kino += ', ' + blocks[ln].querySelector('a').innerHTML;
+                         }
+                         kino = kino.substr(1, kino.length);
+                         var config = {
+                             type: "basic",
+                             title: 'Бронирование билетов!!!',
+                             message: 'На ' + date + ' число стало доступно бронирование билетов в кинотеатрах: ' + kino,
+                             iconUrl: "../img/icon_128.png"
+                         };
+                         //проверяем есть ли в настройках название фильма
+                         if (film) {
+                             filmsSegments = film.split(' '); //Разбиваем название фильма
+                             var ln = filmsSegments.length;
+                             config.message = 'Стало возможным пронирование билетов на фильм "' + film + '" в кинотеатрах:' + kino;
+                             if (ln === 1) {//Если название состоит только из одного слова то ищем по полному совпадению
+                                 if (this.response.indexOf(filmsSegments[0]) !== -1) {
+                                     //показываем предупреждение
+                                     showNotifification(config);
+                                 }
+                             }
+                             //Если название фильма состоит более чем из двух слов, то считаем что фильм опознан если есть хотя бы два совпадения
+                             if (ln >= 2) {
+                                 var consilience = 0;
+                                 while (ln--) {
+                                     if (this.response.indexOf(filmsSegments[ln]) !== -1) {
+                                         consilience++;
+                                     }
+                                 }
+                                 console.log(consilience);
+                                 if (consilience >= 2) {
+                                     //показываем предупреждение
+                                     showNotifification(config);
+                                 }
+                             }
+                         } else {//если фильм не был задан то просто проверяем возможность брони
+                             showNotifification(config);
+                         }
+                     }
+                 }
+             }
+             xhr.send();
+         };
 
      if (localStorage['options']) {
          options = JSON.parse(localStorage['options']),
