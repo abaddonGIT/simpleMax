@@ -12,11 +12,17 @@
  });
  //отлавливаем операции по записи в storage
  chrome.storage.onChanged.addListener(function (changes, areaName) {
-  //chrome.storage.local.remove('kino');
     chrome.storage.local.getBytesInUse('kino', function (bytesInUse) {
         //Если максимальный размер превышен то чистим хранилище
         if (bytesInUse > 600) {
             chrome.storage.local.remove('kino');
+        } 
+    });
+
+    chrome.storage.local.getBytesInUse('videos', function (bytesInUse) {
+        //Если максимальный размер превышен то чистим хранилище
+        if (bytesInUse > 15000) {
+            chrome.storage.local.remove('videos');
         } 
     });
  });
@@ -87,7 +93,7 @@
                                          consilience++;
                                      }
                                  }
-                                 console.log(consilience);
+                                 
                                  if (consilience >= 2) {
                                      //показываем предупреждение
                                      showNotifification(config);
