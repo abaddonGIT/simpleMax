@@ -30,7 +30,7 @@ var Kino = function () {
       'anonimus': 'true',
       'orderType': 'book',
       'userSess': null,
-      'key': 'AI39si5Q-j_5GxpktVOrrasjQx9xgvvMCZxTtUsSmQF-65-imqDXGcVAkWP39c5kEnu9NxzbwlkS0EKIuMeBxXVov22fZEC8jA',
+      'key': '',
       'videoCount': 3
   }
 
