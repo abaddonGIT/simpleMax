@@ -274,10 +274,28 @@ legend {
 	color: #9D1765;
 }
 
+.dop-inform {
+	margin: 10px 0;
+	text-align: center;
+}
+
 .kinopoisk {
 	width: 25px;
 	height: 25px;
 	display: inline-block;
-	float: right;
 	background: url(../img/kinopoisk.png) no-repeat;
+	margin: 0 10px;
+}
+
+.youtube {
+	width: 25px;
+	height: 25px;
+	margin: 0 10px;
+	display: inline-block;
+	background: url(../img/video.png) no-repeat;
+}
+
+.trailer {
+	width: 640px;
+	margin: 20px 0;
 }

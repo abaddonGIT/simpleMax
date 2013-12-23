@@ -3,7 +3,7 @@
  * @author Abaddon <abaddongit@gmail.com>
  * @version 1.0.0
  * ***************************************************/
-var d = document, D = $(d), w = window, W = $(w), T = chrome.tabs;
+var d = document, D = $(d), w = window, W = $(w), T = chrome.tabs, fade = d.querySelector('#fade_content');
 
 var Kino = function () {
 
@@ -29,12 +29,20 @@ var Kino = function () {
       'orderLevel': null,
       'anonimus': 'true',
       'orderType': 'book',
-      'userSess': null
+      'userSess': null,
+      'key': 'AI39si5Q-j_5GxpktVOrrasjQx9xgvvMCZxTtUsSmQF-65-imqDXGcVAkWP39c5kEnu9NxzbwlkS0EKIuMeBxXVov22fZEC8jA',
+      'videoCount': 3
   }
 
   var c = this.config;
 
 	this.init = function () {
+    //Иинициализируем прагин для работы с youtube
+    woolYoutube.init({
+      'key': c.key,
+      'max-results': c.videoCount,
+      'category': 'trailer'
+    });
 		//Пытаемся проверить авторизован ли пользователь на сайте
         K.ajax(function (data) {
             var logForm = $(data).find('#yw0'); 
@@ -49,7 +57,7 @@ var Kino = function () {
             K.addEvents();
             //Установка города из хранилища
             K.actions.setCity();
-        },{'url': c.host + c.checkUserUrl});
+        },{'url': c.host + c.checkUserUrl, 'cont':'#content'});
 	};
 
   /*
@@ -95,7 +103,7 @@ var Kino = function () {
   this.addEvents = function () {
       D.on('change', '#city', K.actions.getTimetable);
       //перехватываем клики по ссылкам
-      D.on('click', '#timetable a:not(.time, .kinopoisk), #logo', K.actions.clickTableLink);
+      D.on('click', '#timetable a:not(.time, .kinopoisk, .youtube), #logo', K.actions.clickTableLink);
       //Всплывающее окно при наведении на время сеанса
       D.on('mouseover','.time', K.actions.over);
       //Удаление инфы о сеансе при сведении
@@ -114,10 +122,56 @@ var Kino = function () {
       D.on('click', '#getUser', K.actions.auth);
       //Запрос рейтинга фильма по его названию с кинопоиска
       D.on('click', '.kinopoisk', K.actions.kinopoisk);
+      //Тест для получения видео с youtube
+      D.on('click', '.youtube', K.actions.viewTrailer);
   };
 
   //Действия
   this.actions = {
+      //Открывает окно для просмотра трейлера к фильму
+      viewTrailer: function () {
+          var el = this,
+              string = $(el).data('film'),
+              storage, 
+              arr = {};
+          //Проверяем нет ли такого контента в хранилище
+              
+          $('#fade').addClass('visible');
+
+          chrome.storage.local.get('videos', function (items) {
+              if (items.videos && items.videos !== undefined) {  
+                  storage = JSON.parse(items.videos);
+                  
+                  if (storage[string]) {
+                      K.putVideoInPage(storage[string]);    
+                  } else {
+                      woolYoutube.search(string, function (videos) {
+                            $('#fade').addClass('visible');
+                            //Если есть хоть одно видео то погнали
+                            if (videos[0]) {
+                                K.putVideoInPage(videos);    
+                            }
+                            //Сохраняем данные в хранилище
+                            storage[string] = videos;
+                            chrome.storage.local.set({'videos':JSON.stringify(storage)});
+                      });   
+                  }
+              } else {
+                  woolYoutube.search(string, function (videos) {
+                      $('#fade').addClass('visible');
+                      //Если есть хоть одно видео то погнали
+                      if (videos[0]) {
+                          K.putVideoInPage(videos);    
+                      }
+                      //Сохраняем данные в хранилище
+                      //storage[string] = videos;
+                      arr[string] = videos;
+                      chrome.storage.local.set({'videos':JSON.stringify(arr)});
+                  });    
+              }  
+          });
+          return false;
+      },
       //Получаеи расписание сеансов
       getTimetable: function () {
           var e = event || window.event;
@@ -170,7 +224,7 @@ var Kino = function () {
           var el = $(this);
           el.addClass('hidden');
           $('#fade').removeClass('visible');
-          $('#fade_content').html('');
+          fade.innerHTML = '';
           //очищаем выбранные места
           c.places = [];
           return false;
@@ -355,7 +409,7 @@ var Kino = function () {
         loc.removeAttr('onmouseout');
       }
 
-      //Тут вставляем иконку кинопоиска
+      //Тут вставляем иконку кинопоиска и ссылку для просмотра трайлера
       var trS = $(conteiner).find('tr'), trLen = trS.length;
 
       for (var i = 0; i < trLen; i++) {
@@ -364,7 +418,7 @@ var Kino = function () {
           var fl = $(locA).is('span');
 
           if (locA[0] !== undefined && !fl) {
-              locA.after('<a href="#" title="Узнать рейтинг фильма на кинопоиске" class="kinopoisk" data-film="' + locA.text() + '"></a>');
+              locA.after('<div class="dop-inform"><a href="#" title="Узнать рейтинг фильма на кинопоиске" class="kinopoisk" data-film="' + locA.text() + '"></a><a href="#" title="Посмотреть трейлер к фильму" data-film="' + locA.text() + '" class="youtube"></a></div>');
           } 
       } 
 
@@ -405,10 +459,34 @@ var Kino = function () {
 };
 
 /*
+* Формирует html код для вставки видео
+*/
+
+Kino.prototype.putVideoInPage = function (videos) {
+    var ln = videos.length, 
+        result = '';
+
+    console.log(ln);
+
+    if (ln > 0) {
+        setTimeout(function () {
+            for (var i = 0; i < ln; i++) {
+                result += '<div class="trailer">' +
+                              '<iframe width="640" height="360" src="http://www.youtube.com/embed/' + videos[i].id + '" frameborder="0" allowfullscreen></iframe>' +    
+                          '</div>';
+            }  
+            fade.innerHTML = result;
+        }, 1200);
+    } else {
+        fade.innerHTML = '<p>Видео по этому запросу найдено не было!</p>';
+    }
+};
+
+/*
 * Показывает всплывающее окно
 */
 Kino.prototype.showWindow= function (data) {
-    var popup = '<div class="pop" style="position: absolute; top: ' + (data.y - 30) + 'px; left: ' + (data.x + 30) + 'px;">' + data.text + '</div>';
+    var popup = '<div class="pop" style="position: absolute; top: ' + (data.y - 20) + 'px; left: ' + (data.x - 50) + 'px;">' + data.text + '</div>';
     this.config.timetableBlock.append(popup);
 };
 
