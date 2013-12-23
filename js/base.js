@@ -29,9 +29,8 @@ var Kino = function () {
         'orderLevel': null,
         'anonimus': 'true',
         'orderType': 'book',
-      'userSess': null,
-      'key': 'AI39si5Q-j_5GxpktVOrrasjQx9xgvvMCZxTtUsSmQF-65-imqDXGcVAkWP39c5kEnu9NxzbwlkS0EKIuMeBxXVov22fZEC8jA',
-      'videoCount': 3
+        'userSess': null,
+        'videoCount': 3
   }
 
   var c = this.config;
@@ -39,7 +38,6 @@ var Kino = function () {
 	this.init = function () {
     //Иинициализируем прагин для работы с youtube
     woolYoutube.init({
-      //'key': c.key,
       'max-results': c.videoCount,
       'category': 'trailer'
     });
