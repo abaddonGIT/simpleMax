@@ -60,9 +60,6 @@
  		var string = '', url = '';
  		videos = [];
 
- 		if (!config.key) {
- 			throw ('Не указан ключ разработчика!!!');
- 		} else {
  			if (!q || q === undefined) {
  				throw ('Запрос пуст!');
  			} else {
@@ -95,7 +92,6 @@
 					callback(videos);
  				});
  			}
- 		}
  	};
 
  	/*
@@ -108,6 +104,7 @@
  				str += '&' + i + '=' + config[i];
  			}
  		};
+ 		console.log(str);
 
  		//str = str.substr(0, str.length - 1);
 
