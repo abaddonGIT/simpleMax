@@ -6,3 +6,6 @@
 .idea/simple Max.iml
 .idea/vcs.xml
 .idea/workspace.xml
+
+node_modules
+Gruntfile.js

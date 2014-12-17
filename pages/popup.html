@@ -1,82 +1,85 @@
 <html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-        <link type="text/css" rel="stylesheet" href="../css/style.css" />
-        <link type="text/css" rel="stylesheet" href="../css/jquery-ui-1.10.3.custom.min.css" />
-        <title>simpleMax</title>
-    </head>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link type="text/css" rel="stylesheet" href="../dist/style.min.css"/>
+    <link type="text/css" rel="stylesheet" href="../css/jquery-ui-1.10.3.custom.min.css"/>
+    <title>simpleMax</title>
+</head>
 
-    <body>
-        <div id="wrapper">
-            <div id="fade" class="effect">
-                <b class="close"></b>
-                <div id="fade_content">
-                    
-                </div>
+<body>
+<div id="wrapper">
+    <div id="fade" class="effect">
+        <b class="close"></b>
+
+        <div id="full">
+            <div id="fade_content">
+
             </div>
-            <table id="content">
-                </tbody>
-                    <tr>
-                        <td>
-                            <div id="timetable">
-
-                            </div>
-                        </td>
-                        <td>
-                            <a href="/" id="logo" title="Перейти на сайт Киномакс"></a>
-                            <form action="#" method="post" id="timetableForm">
-                                <fieldset>
-                                    <legend>Выберите город и желаемый день просмотра</legend>
-                                    <input type="hidden" name="r" value="schedule/lk" />
-                                    <input type="hidden" name="date" value="" id="date" />
-                                    <select id="city" name="cityID">
-                                        <option value="">Город</option>
-                                        <option value="1">Москва</option>
-                                        <option value="4">Санкт-Петербург</option>
-                                        <option value="23">Астрахань</option>
-                                        <option value="3">Владимир</option>
-                                        <option value="5">Волгоград</option>
-                                        <option value="25">Волжский</option>
-                                        <option value="17">Воронеж</option>
-                                        <option value="6">Екатеринбург</option>
-                                        <option value="21">Ижевск</option>
-                                        <option value="7">Казань</option>
-                                        <option value="22">Киров</option>
-                                        <option value="19">Краснодар</option>
-                                        <option value="18">Красноярск</option>
-                                        <option value="9">Пермь</option>
-                                        <option value="10">Ростов-на-Дону</option>
-                                        <option value="24">Рязань</option>
-                                        <option value="13">Тамбов</option>
-                                        <option value="16">Томск</option>
-                                        <option value="12">Челябинск</option>
-                                        <option value="20">Ярославль</option>
-                                    </select>
-                                    <div id="datepicker"></div>
-                                </fieldset>
-                            </form>
-                            <form action="#" method="post" id="authBlock">
-                                <fieldset>
-                                    <legend>Авторизация</legend>
-                                    <div id="messages"></div>
-                                    <input type="hidden" name="login_submit.x" value="17" />
-                                    <input type="hidden" name="login_submit.y" value="7" />
-                                    <label for="username">Логин:</label>
-                                    <input type="text" id="username" name="LoginForm[username]" />
-                                    <label for="password">Пароль</label>
-                                    <input type="password" id="password" name="LoginForm[password]" />
-                                    <a href="#" id="getUser">Войти</a>
-                                </fieldset>
-                            </form>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
         </div>
-        <script src="../js/libs/jquery-2.0.3.js" type="text/javascript"></script>
-        <script src="../js/plugins/woolYoutube.js" type="text/javascript"></script>
-        <script src="../js/libs/jquery-ui-1.10.3.custom.min.js" type="text/javascript"></script>
-        <script src="../js/libs/ru.js" type="text/javascript"></script>
-        <script src="../js/base.js" type="text/javascript"></script>
-    </body>
+    </div>
+    <table id="content">
+        </tbody>
+        <tr>
+            <td>
+                <div id="timetable">
+
+                </div>
+            </td>
+            <td>
+                <a href="/" id="logo" title="Перейти на сайт Киномакс"></a>
+
+                <form action="#" method="post" id="timetableForm">
+                    <fieldset>
+                        <legend>Выберите город и желаемый день просмотра</legend>
+                        <input type="hidden" name="r" value="schedule/lk"/>
+                        <input type="hidden" name="date" value="" id="date"/>
+                        <select id="city" name="cityID">
+                            <option value="">Город</option>
+                            <option value="1">Москва</option>
+                            <option value="4">Санкт-Петербург</option>
+                            <option value="23">Астрахань</option>
+                            <option value="3">Владимир</option>
+                            <option value="5">Волгоград</option>
+                            <option value="25">Волжский</option>
+                            <option value="17">Воронеж</option>
+                            <option value="6">Екатеринбург</option>
+                            <option value="21">Ижевск</option>
+                            <option value="7">Казань</option>
+                            <option value="22">Киров</option>
+                            <option value="19">Краснодар</option>
+                            <option value="18">Красноярск</option>
+                            <option value="9">Пермь</option>
+                            <option value="10">Ростов-на-Дону</option>
+                            <option value="24">Рязань</option>
+                            <option value="13">Тамбов</option>
+                            <option value="16">Томск</option>
+                            <option value="12">Челябинск</option>
+                            <option value="20">Ярославль</option>
+                        </select>
+
+                        <div id="datepicker"></div>
+                    </fieldset>
+                </form>
+                <form action="#" method="post" id="authBlock">
+                    <fieldset>
+                        <legend>Авторизация</legend>
+                        <div id="messages"></div>
+                        <input type="hidden" name="login_submit.x" value="17"/>
+                        <input type="hidden" name="login_submit.y" value="7"/>
+                        <label for="username">Логин:</label>
+                        <input type="text" id="username" name="LoginForm[username]"/>
+                        <label for="password">Пароль</label>
+                        <input type="password" id="password" name="LoginForm[password]"/>
+                        <a href="#" id="getUser">Войти</a>
+                    </fieldset>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<script src="../js/libs/jquery-2.0.3.js" type="text/javascript"></script>
+<script src="../js/libs/jquery-ui-1.10.3.custom.min.js" type="text/javascript"></script>
+<script src="../dist/all.min.js" type="text/javascript"></script>
+</body>
 </html>
